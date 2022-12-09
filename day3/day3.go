@@ -64,12 +64,12 @@ func getMap() map[string]int {
 	}
 }
 
-func solution1() error {
+func solution() error {
 	var err error
 	var file []byte
 	var repeatingItems []string
 	priorityTotal := 0
-
+	elfBadgeTotal := 0
 	itemPriorityWeights := getMap()
 
 	if file, err = os.ReadFile("input.txt"); err != nil {
@@ -77,11 +77,9 @@ func solution1() error {
 	}
 
 	fileString := string(file)
-	rucksacks := strings.Split(fileString, "\r\n")
-
+	rucksacks := strings.Split(fileString, "\r\n")	
 	for _, value := range rucksacks {
 		rucksackSize := len(value)
-		
 		firstHalf := value[:rucksackSize/2]
 		secondHalf := value[rucksackSize/2:]
 
@@ -104,63 +102,61 @@ func solution1() error {
 		priorityTotal += itemPriorityWeights[value]
 	}
 
-	fmt.Printf("total p1: %v", priorityTotal)
+	// part 2
+	elfGroups := [][]string{}
+	for len(rucksacks) > 0 {
+		elfGroups = append(elfGroups, rucksacks[0:3])
+		rucksacks = rucksacks[3:]
+	}
+
+	elfBadges := []string{}
+	for _, value := range elfGroups {
+		charsFoundInFirstCheck := checkCommonChar(value[0], value[1])
+
+		valueIdentified := false
+		for _, char := range charsFoundInFirstCheck {
+			for _, char1 := range []rune(value[2]) {
+				if valueIdentified == true {
+					break
+				}
+
+				if char == string(char1) {
+					valueIdentified = true
+					elfBadges = append(elfBadges, string(char1))
+				}
+			}
+		}
+	}
+
+	for _, value := range elfBadges {
+		elfBadgeTotal += itemPriorityWeights[value]
+	}
+
+	fmt.Printf("total p1: %v\n", priorityTotal)
+	fmt.Printf("total p2: %v", elfBadgeTotal)
 
 	return nil
 }
 
-//TBD
-func solution2() error {
-	var err error
-	var file []byte
-	var repeatingItems []string
-	priorityTotal := 0
+func checkCommonChar(string1, string2 string) []string {
+	commonValues := map[string]bool{}
+	foundCharacters := []string{}
 
-	itemPriorityWeights := getMap()
-
-	if file, err = os.ReadFile("input.txt"); err != nil {
-		return fmt.Errorf("error occured: %w", err)
-	}
-
-	fileString := string(file)
-	rucksacks := strings.Split(fileString, "\r\n")
-
-	for _, value := range rucksacks {
-		rucksackSize := len(value)
-		
-		firstHalf := value[:rucksackSize/2]
-		secondHalf := value[rucksackSize/2:]
-
-		valueIdentified := false
-		for _, value1 := range []rune(firstHalf) {
-			for _, value2 := range []rune(secondHalf) {
-				if valueIdentified == true {
-					break
-				}
-
-				if string(value1) == string(value2) {
-					valueIdentified = true
-					repeatingItems = append(repeatingItems, string(value1))
-				}
-			}
-		}
+	for _, char1 := range []rune(string1) {
+		commonValues[string(char1)] = true
 	}
 	
-	for _, value := range repeatingItems {
-		priorityTotal += itemPriorityWeights[value]
+	for _, char2 := range []rune(string2) {
+		if commonValues[string(char2)] {
+			foundCharacters = append(foundCharacters, string(char2))
+		}
 	}
 
-	fmt.Printf("total p2: %v", priorityTotal)
-
-	return nil
+	return foundCharacters
 }
 
 func main()  {
-	if err := solution1(); err != nil {
-		fmt.Printf("%v", err)
-	}
-
-	if err := solution2(); err != nil {
+	if err := solution(); err != nil {
 		fmt.Printf("%v", err)
 	}
 }
